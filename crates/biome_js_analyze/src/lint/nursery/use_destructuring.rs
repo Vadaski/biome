@@ -178,6 +178,8 @@ pub enum UseDestructuringState {
     Array,
 }
 
+/// Determines if array destructuring is supported for the given expression.
+/// Returns true unless the expression is definitively known to be non-iterable.
 fn supports_array_destructuring(object: &AnyJsExpression, model: &SemanticModel) -> bool {
     let mut visited = HashSet::<TextRange>::new();
     !matches!(
@@ -186,6 +188,9 @@ fn supports_array_destructuring(object: &AnyJsExpression, model: &SemanticModel)
     )
 }
 
+/// Analyzes an expression to determine array destructuring support.
+/// Strips parentheses and follows identifier bindings via SemanticModel.
+/// Returns: Some(true) = iterable, Some(false) = non-iterable, None = unknown.
 fn array_destructuring_support_for_expression(
     object: &AnyJsExpression,
     model: &SemanticModel,
@@ -202,6 +207,9 @@ fn array_destructuring_support_for_expression(
     }
 }
 
+/// Analyzes various binding declaration types for array destructuring compatibility.
+/// Tracks visited nodes to break cycles in type alias references.
+/// Returns: Some(true) = iterable, Some(false) = non-iterable, None = unknown.
 fn array_destructuring_support_for_declaration(
     declaration: &AnyJsBindingDeclaration,
     model: &SemanticModel,
@@ -245,6 +253,8 @@ fn array_destructuring_support_for_declaration(
     }
 }
 
+/// Extracts the type from a TypeScript type annotation and delegates to type analysis.
+/// Returns: Some(true) = iterable, Some(false) = non-iterable, None = unknown.
 fn array_destructuring_support_for_type_annotation(
     annotation: &TsTypeAnnotation,
     model: &SemanticModel,
@@ -254,6 +264,10 @@ fn array_destructuring_support_for_type_annotation(
     array_destructuring_support_for_type(&ty, model, visited)
 }
 
+/// Analyzes TypeScript types for array destructuring compatibility.
+/// Recognizes iterable types (arrays, tuples, strings) and non-iterable primitives.
+/// Tracks visited nodes to prevent infinite recursion in type references.
+/// Returns: Some(true) = iterable, Some(false) = non-iterable, None = unknown.
 fn array_destructuring_support_for_type(
     ty: &AnyTsType,
     model: &SemanticModel,
